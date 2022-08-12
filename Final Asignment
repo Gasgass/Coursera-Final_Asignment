@@ -1,0 +1,97 @@
+import yfinance as yf #Import all the libraries
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup as bsp 
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+Question 1: Use yfinance to Extract Stock Data
+
+
+tesla_stock = yf.Ticker("TSLA") #Here we add the values of the stock to a variable
+
+
+tesla_data = tesla_stock.history(period= "max") #The stock price history saved in a variable
+
+tesla_data.reset_index(inplace= True)
+tesla_data.head() #Showing the dataframe
+Date	Open	High	Low	Close	Volume	Dividends	Stock Splits
+0	2010-06-29	3.800	5.000	3.508	4.778	93831500	0	0.0
+1	2010-06-30	5.158	6.084	4.660	4.766	85935500	0	0.0
+2	2010-07-01	5.000	5.184	4.054	4.392	41094000	0	0.0
+3	2010-07-02	4.600	4.620	3.742	3.840	25699000	0	0.0
+4	2010-07-06	4.000	4.000	3.166	3.222	34334500	0	0.0
+
+Question 2: Use Webscraping to Extract Tesla Revenue Data
+
+url = "https://www.macrotrends.net/stocks/charts/TSLA/tesla/revenue" #Chosen website
+
+html_data = requests.get(url).text 
+
+soup = bsp(html_data, "html5lib") #Raw data extracted, "html.parse" can be use instead of "html5lib"
+
+tesla_revenue = pd.DataFrame(columns= ["Date", "Revenue"]) #Format given to the dataframe
+
+for n in soup.find("tbody").find_all("tr"):
+    col = n.find_all("td") #In this line we are searching one by one the data in the web page
+    date = col[0].text.replace("[]", "").replace("$", "").replace(",","") #The unnecessary symbols have been replaced
+    revenue = col[1].text.replace("[]", "").replace("$", "").replace(",","") #The unnecessary symbols have been replaced
+    
+    tesla_revenue = tesla_revenue.append({"Date":date, "Revenue":revenue}, ignore_index= True) #Values stored in a dataframe
+
+tesla_revenue["Revenue"] = tesla_revenue['Revenue'].str.replace(',|\$',"") #This part of the code is obsolete because I have replaced those symbols before
+
+tesla_revenue.dropna(inplace=True)
+
+tesla_revenue = tesla_revenue[tesla_revenue['Revenue'] != ""]
+
+tesla_revenue.tail() #The last five results of the data set shown here
+Date	Revenue
+11	2009	8806
+12	2008	7094
+13	2007	5319
+14	2006	3092
+15	2005	1843
+
+
+Question 3: Use yfinance to Extract Stock Data
+
+gamestop_stock = yf.Ticker("GME") #Here we add the values of the stock to a variable
+
+gme_data = gamestop_stock.history(period= "max") #Saving in a variable all the history stock price
+
+gme_data.reset_index(inplace= True)
+gme_data.head() #Showing only the first five values
+
+Date	Open	High	Low	Close	Volume	Dividends	Stock Splits
+0	2002-02-13	1.620128	1.693350	1.603296	1.691666	76216000	0.0	0.0
+1	2002-02-14	1.712707	1.716074	1.670626	1.683251	11021600	0.0	0.0
+2	2002-02-15	1.683251	1.687459	1.658002	1.674834	8389600	0.0	0.0
+3	2002-02-19	1.666418	1.666418	1.578047	1.607504	7410400	0.0	0.0
+4	2002-02-20	1.615921	1.662210	1.603296	1.662210	6892800	0.0	0.0
+
+
+Question 4: Use Webscraping to Extract GME Revenue Data
+
+url_gme = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/stock.html"
+
+html_data = requests.get(url_gme).text #Getting the webpage data
+
+soup = bsp(html_data, "html5lib")
+
+gme_revenue = pd.DataFrame(columns= ["Date", "Revenue"])
+
+for n in soup.find("tbody").find_all("tr"):
+    col = n.find_all("td")
+    date = col[0].text.replace("[]", "").replace("$", "").replace(",","") #Replace here the unnecesarie symbols
+    revenue = col[1].text.replace("[]", "").replace("$", "").replace(",","") #Replace here the unnecesarie symbols
+    gme_revenue = gme_revenue.append({"Date":date, "Revenue":revenue}, ignore_index= True)
+
+gme_revenue.tail() #Showing the results
+
+Date	Revenue
+11	2009	8806
+12	2008	7094
+13	2007	5319
+14	2006	3092
+15	2005	1843
